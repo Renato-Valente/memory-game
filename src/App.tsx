@@ -1,5 +1,7 @@
 import './App.css'
+import background from './assets/card-background.png'
 import Card from './components/Card'
+import dog from './assets/dog.png'
 
 function App() {
   
@@ -13,10 +15,16 @@ function App() {
       </div>
       <div className="game-container">
         <div className="cards-line">
-        <Card size={100}/><Card size={100}/><Card size={100}/><Card size={100}/><Card size={100}/>
+        <Card size={150} image={dog} background={background}/>
+        <Card size={150} image={dog} background={background}/>
+        <Card size={150} image={dog} background={background}/>
+        <Card size={150} image={dog} background={background}/>
         </div>
         <div className="cards-line">
-        <Card size={100}/><Card size={100}/><Card size={100}/><Card size={100}/><Card size={100}/>
+        <Card size={150} image={dog} background={background}/>
+        <Card size={150} image={dog} background={background}/>
+        <Card size={150} image={dog} background={background}/>
+        <Card size={150} image={dog} background={background}/>
         </div>
       </div>
     </div>

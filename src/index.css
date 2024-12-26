@@ -53,11 +53,3 @@ body {
   border-radius: 12px;
   background-color: #FBE9D0;
 }
-
-.cards-line {
-  height: 50%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  
-}

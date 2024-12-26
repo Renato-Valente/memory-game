@@ -1,0 +1,24 @@
+.cards-line {
+    height: 50%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #90AEAD;
+    /* border: 1px solid red; */
+  }
+  
+  .card-front {
+    height: 50px;
+    width: auto;
+  }
+  
+  .card-background {
+    height: 100%;
+    width: 100%;
+  }
