@@ -1,9 +1,19 @@
 import './card.css'
 import { CSSProperties, useState, useRef } from "react";
 
-const Card = (props:{size:number, image:string, background:string}) => {
+type propsType = {
+  size:number,
+  id:number,
+  image:string,
+  background:string,
+  hovererd:boolean,
+  selected: boolean,
+  setCards: (value: React.SetStateAction<{hovered:boolean, selected:boolean, image:string}[]>) => void 
+}
 
-  const {size, image, background} = props;
+const Card = (props:propsType) => {
+
+  const {size, image, background, hovererd, selected, id, setCards} = props;
 
   const [scale, setScale] = useState(1);
   const [angle, setAngle] = useState(0);
@@ -82,9 +92,15 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
       setAngle(convertAngle(target));
       isAnimating.current = false;
 
-      const selected = !isFlipped(tmpAngleRef.current);
-      console.log('selected ca estamos', selected);
-      isSelectedRef.current = selected;
+      const selected_ = !isFlipped(tmpAngleRef.current);
+      console.log('selected ca estamos', selected_);
+      isSelectedRef.current = selected_;
+
+      setCards((prev) => {
+        let result = [...prev];
+        result[id].selected = selected_;
+        return result;
+      })
 
       if(onComplete) onComplete();
       return;
@@ -100,21 +116,41 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
   const handlePointerEnter = () => {
     if(isAnimating.current || isSelectedRef.current || isCollectedRef.current) return;
     if(!cardRef.current) return;
-    setIsHovered(true);
+
+    setCards((prev) => {
+      let result = [...prev];
+      result.forEach((item) => {
+        if(item.selected) return;
+        item.hovered = false;
+      })
+      result[id].hovered = true;
+      return result;
+
+      // return prev;
+    })
+    /* setIsHovered(true);
     setScale(1.2);
-    cardRef.current.style.border = '1px solid red';
+    cardRef.current.style.border = '1px solid red'; */
   }
 
   const handlePointerLeave = () => {
     if(isAnimating.current || isSelectedRef.current || isCollectedRef.current) return;
     if(!cardRef.current) return;
-    setIsHovered(false);
+
+    setCards((prev) => {
+      let result = [...prev];
+      result[id].hovered = false;
+      return result;
+    })
+    
+    /* setIsHovered(false);
     setScale(1);
-    cardRef.current.style.border = '';
+    cardRef.current.style.border = ''; */
   }
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if(isAnimating.current) return;
+    console.log('click', id);
     //setScale(1.2);
     //tmpScaleRef.current = 1.2;
     //scaleRef.current = 1.2;
@@ -134,7 +170,6 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
     return (newValue < 90 || newValue > 270)
   }
   
-  console.log('render',tmpAngleRef.current,  isFlipped(tmpAngleRef.current))
   return(
     <div
     onPointerEnter={handlePointerEnter}
@@ -143,7 +178,9 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
     ref={cardRef}
     style={{
       width: size * 3 /4,
-      scale: `${scale}`,
+      //scale: `${scale}`,
+      scale: hovererd || selected ? '1.2' : '1',
+      border: hovererd || selected ? '1px solid red' : '',
       transform: `rotateY(${angle}deg)`,
       height: size,
       position: 'relative'
