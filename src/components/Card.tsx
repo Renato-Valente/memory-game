@@ -1,83 +1,159 @@
 import './card.css'
 import { CSSProperties, useState, useRef } from "react";
 
-const Card = (props:{size:number, background:string, image:string}) => {
+const Card = (props:{size:number, image:string, background:string}) => {
 
+  const {size, image, background} = props;
+
+  const [scale, setScale] = useState(1);
+  const [angle, setAngle] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const [isSelected, setIsSelected] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
 
+  const isSelectedRef = useRef(false);
+  const scaleRef = useRef(scale);
+  const tmpScaleRef = useRef(scale);
+
+  const angleRef = useRef(angle);
+  const tmpAngleRef = useRef(angle);
+
+  const lastTime = useRef(0);
+  const isCollectedRef = useRef(false);
+  
+  const isAnimating = useRef(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const angleRef = useRef(0);
-  const angleLimitRef = useRef(0);
-  const lasTimeRef = useRef(0);
-  const isFlippedRef = useRef(false);
+  const backRef = useRef<HTMLImageElement>(null);
+  const frontRef = useRef<HTMLImageElement>(null);
 
-  const {size, background, image} = props;
-  const style:CSSProperties = {
-    height: size,
-    width: size * 3 / 4,
-    scale: isHovered ? '1.2' : '1',
-    border: isHovered ? '1px solid yellow' : undefined
-  }
 
-  const handleMouseEnter = () => {
-    if(isSelected) return;
-    setIsHovered(true);
-  }
-  const handleMouseLeave = () => {
-    if(isSelected || isAnimating) return;
-    setIsHovered(false);
-  }
+//animation to make the card inscrease or decrease its scale
 
-  //this is the functionthat is going to make the card spin 180 degrees
-  const animate = () => {
+const scaleAnimation = (value:number, onComplete?:() => void) => {
+
+  if(!cardRef || !cardRef.current) return;
+  isAnimating.current = true;
+  const time = Date.now();
+  const delta = time - lastTime.current;
+
+  //target is the value we want to achieve at the end od the animation
+  const target = scaleRef.current + value;
+  //direction defines if we're going to inscrease or decrease the scale's value
+  const direction = value >= 0 ? 1 : -1;
+  const inscrement = delta > 100 ? 0 : 2 * direction * delta / 1000;
+  tmpScaleRef.current = tmpScaleRef.current += inscrement;
+
+  //setting all scale values to target at the end of the animation
+  if((tmpScaleRef.current >= target && direction > 0) ||
+     (tmpScaleRef.current <= target && direction < 0)) {
+      tmpScaleRef.current  = target;
+      scaleRef.current = target;
+      setScale(target);
+      isAnimating.current = false;
+      if(onComplete) onComplete();
+
+      return;
+     }
+
+  //console.log('tmpscale: ', tmpScaleRef.current);
+  cardRef.current.style.scale = `${tmpScaleRef.current}`;
+
+  lastTime.current = time;
+  requestAnimationFrame(() => scaleAnimation(value, onComplete));
+}
+
+// animation to make the card spin around itself on the Y axis
+  const rotateAnimation = (deg:number, onComplete?:() => void) => {
+
+    if(!cardRef.current || !backRef.current || !frontRef.current) return;
+    isAnimating.current = true;
     const time = Date.now();
-    const delta = time - lasTimeRef.current;
-    if(!cardRef || !cardRef.current) return;
-    //after spinning 90 degrees, the image of the card should change, 
-    //giving the impression that it has flipped
-    if((angleLimitRef.current - angleRef.current) <= 90 && !isFlippedRef.current) {
-      isFlippedRef.current = true;
-      setIsSelected((prev) => !prev);
-    }
-    if(angleRef.current >= angleLimitRef.current) {
-      console.log('angle: ', angleLimitRef.current);
-      setIsAnimating(false);
+    const delta = time - lastTime.current;
+
+    const target = angleRef.current + deg;
+    const direction = deg > 0 ? 1 : -1;
+
+    const increment = delta > 100 ? 0 : 300 * direction * delta / 1000
+    tmpAngleRef.current = tmpAngleRef.current + increment;
+
+    
+    
+    if((tmpAngleRef.current >= target && deg >= 0) || (tmpAngleRef.current <= target && deg <= 0)) {
+      tmpAngleRef.current =  convertAngle(target);
+      angleRef.current = convertAngle(target);
+      setAngle(convertAngle(target));
+      isAnimating.current = false;
+
+      const selected = !isFlipped(tmpAngleRef.current);
+      console.log('selected ca estamos', selected);
+      isSelectedRef.current = selected;
+
+      if(onComplete) onComplete();
       return;
     }
+    cardRef.current.style.transform = `rotateY(${tmpAngleRef.current}deg)`;
+    backRef.current.style.display = isFlipped(tmpAngleRef.current) ? 'block' : 'none';
+    frontRef.current.style.display = !isFlipped(tmpAngleRef.current) ? 'block' : 'none';
     
-    //console.log('delta: ', delta);
-    const valueToAdd = delta < 100 ? Math.floor(300 * delta / 1000) : 0;
-    console.log('adding: ', valueToAdd);
-    
-    //checking if the final result is bigger than angleLimiRef. If so, it means
-    //the card spinned more than it should
-    angleRef.current = angleRef.current + valueToAdd >= angleLimitRef.current ?
-    angleLimitRef.current : angleRef.current + valueToAdd;
-
-    cardRef.current.style.transform = `rotateY(${angleRef.current}deg)`;
-    lasTimeRef.current = time;
-    requestAnimationFrame(animate);
+    lastTime.current = time;
+    requestAnimationFrame(() => rotateAnimation(deg, onComplete));
   }
 
-  const handleClick = () => {
-    if(isAnimating) return;
-    setIsAnimating(true);
-    angleLimitRef.current = angleRef.current + 180;
-    isFlippedRef.current = false;
-    requestAnimationFrame(animate);
+  const handlePointerEnter = () => {
+    if(isAnimating.current || isSelectedRef.current || isCollectedRef.current) return;
+    if(!cardRef.current) return;
+    setIsHovered(true);
+    setScale(1.2);
+    cardRef.current.style.border = '1px solid red';
   }
+
+  const handlePointerLeave = () => {
+    if(isAnimating.current || isSelectedRef.current || isCollectedRef.current) return;
+    if(!cardRef.current) return;
+    setIsHovered(false);
+    setScale(1);
+    cardRef.current.style.border = '';
+  }
+
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if(isAnimating.current) return;
+    //setScale(1.2);
+    //tmpScaleRef.current = 1.2;
+    //scaleRef.current = 1.2;
+    //scaleAnimation(0.5);
+    rotateAnimation(180);
+    console.log('event: ', e);
+  }
+
+  const convertAngle = (value:number) => {
+    if(value > 360) return convertAngle(value - 360);
+    if(value < 0) return convertAngle(value + 360);
+    return value;
+  }
+
+  const isFlipped = (value:number) => {
+    const newValue = convertAngle(value);
+    return (newValue < 90 || newValue > 270)
+  }
+  
+  console.log('render',tmpAngleRef.current,  isFlipped(tmpAngleRef.current))
   return(
-    <div onMouseEnter={handleMouseEnter}
-         onMouseLeave={handleMouseLeave} 
-         onClick={handleClick}
-         ref={cardRef}
-         style={style} className='card'>
-        <img style={{display: isSelected ? 'block' : 'none'}} className='card-front' src={image} />
-        <img style={{display: isSelected ? 'none' : 'block'}} src={background} className='card-background'/>
+    <div
+    onPointerEnter={handlePointerEnter}
+    onPointerLeave={handlePointerLeave}
+    onClick={(e) => handleClick(e)}
+    ref={cardRef}
+    style={{
+      width: size * 3 /4,
+      scale: `${scale}`,
+      transform: `rotateY(${angle}deg)`,
+      height: size,
+      position: 'relative'
+    }}
+    className="card">
+    <img ref={backRef} style={{display: isFlipped(tmpAngleRef.current) ? 'block' : 'none'}} src={background} className="card-background" />
+    <img ref={frontRef} style={{display: isFlipped(tmpAngleRef.current) ? 'none' : 'block'}} src={image}className="card-front" />
     </div>
   )
+
 }
 
 export default Card;
