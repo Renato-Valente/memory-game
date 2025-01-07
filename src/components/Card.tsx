@@ -1,5 +1,5 @@
 import './card.css'
-import { CSSProperties, useState, useRef } from "react";
+import { CSSProperties, useState, useRef, useEffect } from "react";
 
 type propsType = {
   size:number,
@@ -8,12 +8,13 @@ type propsType = {
   background:string,
   hovererd:boolean,
   selected: boolean,
-  setCards: (value: React.SetStateAction<{hovered:boolean, selected:boolean, image:string}[]>) => void 
+  collected:boolean,
+  setCards: (value: React.SetStateAction<{hovered:boolean, selected:boolean, collected:boolean, image:string}[]>) => void 
 }
 
 const Card = (props:propsType) => {
 
-  const {size, image, background, hovererd, selected, id, setCards} = props;
+  const {size, image, background, hovererd, selected, collected, id,  setCards} = props;
 
   const [scale, setScale] = useState(1);
   const [angle, setAngle] = useState(0);
@@ -34,6 +35,27 @@ const Card = (props:propsType) => {
   const backRef = useRef<HTMLImageElement>(null);
   const frontRef = useRef<HTMLImageElement>(null);
 
+
+  useEffect(() => {
+    //console.log('ain, madruguinha')
+    const newAngle = selected ? 180 : 360;
+    setAngle((prev) => {
+      if(prev == newAngle) return prev;
+      tmpAngleRef.current = newAngle;
+      angleRef.current = newAngle;
+      return newAngle;
+    });
+
+    const selected_ = selected;
+    isSelectedRef.current = selected_;
+
+    setCards((prev) => {
+      if(prev[id].selected == selected_) return prev;
+      const result = prev.map((item) => {return {...item}});
+      result[id].selected = selected_
+      return result;
+    })
+  })
 
 //animation to make the card inscrease or decrease its scale
 
@@ -84,8 +106,7 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
     const increment = delta > 100 ? 0 : 300 * direction * delta / 1000
     tmpAngleRef.current = tmpAngleRef.current + increment;
 
-    
-    
+    //Target angle reached. Finishing the spin animation
     if((tmpAngleRef.current >= target && deg >= 0) || (tmpAngleRef.current <= target && deg <= 0)) {
       tmpAngleRef.current =  convertAngle(target);
       angleRef.current = convertAngle(target);
@@ -93,9 +114,10 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
       isAnimating.current = false;
 
       const selected_ = !isFlipped(tmpAngleRef.current);
-      console.log('selected ca estamos', selected_);
+      //console.log('selected ca estamos', selected_);
       isSelectedRef.current = selected_;
 
+      //Atualizando o valor do estado cards do component App
       setCards((prev) => {
         let result = [...prev];
         result[id].selected = selected_;
@@ -105,6 +127,7 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
       if(onComplete) onComplete();
       return;
     }
+
     cardRef.current.style.transform = `rotateY(${tmpAngleRef.current}deg)`;
     backRef.current.style.display = isFlipped(tmpAngleRef.current) ? 'block' : 'none';
     frontRef.current.style.display = !isFlipped(tmpAngleRef.current) ? 'block' : 'none';
@@ -114,8 +137,10 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
   }
 
   const handlePointerEnter = () => {
+    console.log('angle', tmpAngleRef.current);
     if(isAnimating.current || isSelectedRef.current || isCollectedRef.current) return;
     if(!cardRef.current) return;
+    if(collected) return;
 
     setCards((prev) => {
       let result = [...prev];
@@ -136,6 +161,7 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
   const handlePointerLeave = () => {
     if(isAnimating.current || isSelectedRef.current || isCollectedRef.current) return;
     if(!cardRef.current) return;
+    if(collected) return;
 
     setCards((prev) => {
       let result = [...prev];
@@ -149,12 +175,7 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
   }
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if(isAnimating.current) return;
-    console.log('click', id);
-    //setScale(1.2);
-    //tmpScaleRef.current = 1.2;
-    //scaleRef.current = 1.2;
-    //scaleAnimation(0.5);
+    if(isAnimating.current || collected) return;
     rotateAnimation(180);
     console.log('event: ', e);
   }
@@ -165,11 +186,13 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
     return value;
   }
 
+  //retorna true se a carda esta virada pra baixo
   const isFlipped = (value:number) => {
     const newValue = convertAngle(value);
     return (newValue < 90 || newValue > 270)
   }
-  
+  let cardScale = hovererd || selected ? '1.2' : '1';
+  cardScale = collected ? '-1 1' : cardScale;
   return(
     <div
     onPointerEnter={handlePointerEnter}
@@ -179,15 +202,16 @@ const scaleAnimation = (value:number, onComplete?:() => void) => {
     style={{
       width: size * 3 /4,
       //scale: `${scale}`,
-      scale: hovererd || selected ? '1.2' : '1',
-      border: hovererd || selected ? '1px solid red' : '',
-      transform: `rotateY(${angle}deg)`,
+      scale: (hovererd || selected) && !collected ? '1.2' : '1',
+      border: (hovererd || selected) && !collected ? '1px solid red' : '',
+      transform: collected ? 'rotateY(180deg)' : `rotateY(${angle}deg)`,
       height: size,
       position: 'relative'
     }}
     className="card">
-    <img ref={backRef} style={{display: isFlipped(tmpAngleRef.current) ? 'block' : 'none'}} src={background} className="card-background" />
-    <img ref={frontRef} style={{display: isFlipped(tmpAngleRef.current) ? 'none' : 'block'}} src={image}className="card-front" />
+    <div className="collect-layer" style={{opacity: collected ? 0.5 : 0}}></div>
+    <img ref={backRef} style={{display: isFlipped(tmpAngleRef.current) && !collected ? 'block' : 'none'}} src={background} className="card-background" />
+    <img ref={frontRef} style={{display: isFlipped(tmpAngleRef.current) && !collected ? 'none' : 'block'}} src={image}className="card-front" />
     </div>
   )
 
