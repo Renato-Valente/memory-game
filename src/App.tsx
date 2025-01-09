@@ -9,15 +9,18 @@ import { useEffect, useState } from 'react'
 
 function App() {
 
-  const [cards, setCards] = useState<{hovered:boolean, selected:boolean, collected:boolean, image:string}[]>([
-    {hovered: false, image:dog, selected: false, collected: false},
-    {hovered: false, image:dog, selected: false, collected: false},
-    {hovered: false, image:baby, selected: false, collected: false},
-    {hovered: false, image:baby, selected: false, collected: false},
-    {hovered: false, image:bird, selected: false, collected: false},
-    {hovered: false, image:bird, selected: false, collected: false},
-    {hovered: false, image:bat, selected: false, collected: false},
-    {hovered: false, image:bat, selected: false, collected: false},
+  const [cards, setCards] = useState<{
+    hovered:boolean, selected:boolean, collected:boolean, image:string,
+    reset:boolean
+  }[]>([
+    {hovered: false, image:dog, selected: false, collected: false, reset:false},
+    {hovered: false, image:dog, selected: false, collected: false, reset: false},
+    {hovered: false, image:baby, selected: false, collected: false, reset: false},
+    {hovered: false, image:baby, selected: false, collected: false, reset: false},
+    {hovered: false, image:bird, selected: false, collected: false, reset: false},
+    {hovered: false, image:bird, selected: false, collected: false, reset: false},
+    {hovered: false, image:bat, selected: false, collected: false, reset: false},
+    {hovered: false, image:bat, selected: false, collected: false, reset: false},
   ])
   
   const searchForCollected = () => {
@@ -38,12 +41,17 @@ function App() {
           item.collected = true;
           item.selected = false;
         }
+        break;
       }
     }
     if(hasChanged) {setCards(result); return;};
     if(cardCount < 2) return;
-
+    //caso tenha duas ou mais cartas selecionadas
     for(const card of result) {
+      if(card.selected) {
+        console.log('setting to true');
+        card.reset = true;
+      }
       card.selected = false;
       card.hovered = false;
     }
@@ -53,7 +61,6 @@ function App() {
   useEffect(() => {
     searchForCollected();
   })
-  //console.log(cards);
 
   return (
     <div className="main-container">
@@ -66,14 +73,12 @@ function App() {
       <div className="game-container">
         <div className="cards-line">
           {cards.map((card, index) => {
-            return <Card id={index} hovererd={card.hovered} size={150} selected={card.selected}
-            image={card.image} background={background} key={index} setCards={setCards} collected={card.collected}/>
+            return <Card setCards={setCards} key={index} id={index} config={card} background={background} size={150}/>
           }).slice(0,4)}
         </div>
         <div className="cards-line">
         {cards.map((card, index) => {
-            return <Card id={index} hovererd={card.hovered} size={150} selected={card.selected}
-            image={card.image} background={background} key={index} setCards={setCards} collected={card.collected}/>
+            return <Card setCards={setCards} key={index} id={index} config={card} background={background} size={150}/>
           }).slice(4)}
         </div>
       </div>
