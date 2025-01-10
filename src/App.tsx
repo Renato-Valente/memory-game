@@ -59,6 +59,7 @@ function App() {
   }
   
   useEffect(() => {
+    console.log('render');
     searchForCollected();
   })
 

@@ -33,23 +33,88 @@ const Card = (props: propsType) => {
   }
   
   const {size, config, background, setCards, id} = props;
-  const {image, hovered, selected, collected} = config;
+  const {image, hovered, selected, collected, reset} = config;
   
   useEffect(() => {
-    if(!cardRef || !cardRef.current) return;
+    if(!cardRef.current || !backRef.current || !frontRef.current) return;
     const angle = selected || collected ? 180 : 0;
     cardRef.current.style.transform = `rotateY(${angle}deg)`;
+    backRef.current.style.display = selected || collected ? 'none' : 'block';
+    frontRef.current.style.display = selected || collected ? 'block' : 'none';
+
+    if(reset) {
+
+      resetAnimation(() => {
+        console.log('reset: ', id);
+        //set the reset value of all cards to false
+        setCards((prev) => {
+          const result = prev.map((item) => {return {...item}});
+          /* for(const card of result) {
+            if(!card.reset) continue;
+            card.reset = false;
+          } */
+          result[id].reset = false;
+          return result;
+        })
+      });
+    }
   })
 
   //functions
 
+  const resetAnimation = (onComplete?: () => void) => {
+    if(!cardRef.current) return;
+    if(!backRef.current || !frontRef.current) return;
+    if(isAnimatingRef.current) return;
+
+    //setting the initial values before the animation starts
+    backRef.current.style.display = 'none';
+    frontRef.current.style.display = 'block';
+    let hasChanged = false;
+    isAnimatingRef.current = true;
+    angleRef.current = 180;
+
+    const animation = () => {
+      if(!cardRef.current) return;
+      if(!backRef.current || !frontRef.current) return;
+      const time = Date.now();
+      const delta = time - lastTimeRef.current;
+      const increment = delta > 100 ? 0 : -300 * delta / 1000;
+      angleRef.current += increment;
+
+      if(angleRef.current <= 90 && !hasChanged) {
+        hasChanged = true;
+        backRef.current.style.display = 'block';
+        frontRef.current.style.display = 'none';
+      }
+
+      if(angleRef.current <= 0) {
+        //setting the final values after the animation ends
+        cardRef.current.style.transform = `rotateY(0deg)`  
+        isAnimatingRef.current = false;
+        if(onComplete) onComplete();
+
+        return;
+      }
+
+      cardRef.current.style.transform = `rotateY(${angleRef.current}deg)`
+
+      lastTimeRef.current = time;
+      requestAnimationFrame(animation);
+    }
+
+    requestAnimationFrame(animation);
+  }
+
   const selectAnimation = () => {
+    if(!cardRef || !cardRef.current) return;
+    if(!backRef.current || !frontRef.current) return;
+    isAnimatingRef.current = true;
     const limit = angleRef.current + 180;
 
     const animation = () => {
       if(!cardRef || !cardRef.current) return;
       if(!backRef.current || !frontRef.current) return;
-      isAnimatingRef.current = true;
       const time = Date.now();
       const delta = time - lastTimeRef.current;
 
@@ -69,6 +134,7 @@ const Card = (props: propsType) => {
           return result;
       })
       
+      cardRef.current.style.transform = `rotateY(${limit}deg)`
       isAnimatingRef.current = false;
       return;
     }
