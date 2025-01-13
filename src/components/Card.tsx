@@ -1,18 +1,11 @@
 import { useEffect, useRef } from 'react'
 import './card.css';
+import { cardObject } from '../App';
 
 type propsType = {
-    config: {
-      hovered:boolean, selected:boolean, collected:boolean, image:string,
-    reset:boolean
-    },
+    config: cardObject,
     size: number, id:number, background: string
-    setCards: (value:React.SetStateAction<{
-      
-      hovered:boolean, selected:boolean, collected:boolean, image:string,
-      reset:boolean
-      
-    }[]>) => void
+    setCards: (value:React.SetStateAction<cardObject[]>) => void
   
 }
 const Card = (props: propsType) => {
@@ -33,10 +26,27 @@ const Card = (props: propsType) => {
   }
   
   const {size, config, background, setCards, id} = props;
-  const {image, hovered, selected, collected, reset} = config;
+  const {image, hovered, selected, collected, reset, reboot} = config;
   
   useEffect(() => {
     if(!cardRef.current || !backRef.current || !frontRef.current) return;
+
+    if(reboot){
+      console.log('rebooting');
+      backRef.current.style.display = 'block';
+      frontRef.current.style.display = 'none';
+      cardRef.current.style.transform = 'rotateY(0deg)';
+      isAnimatingRef.current = false;
+
+      setCards((prev) => {
+        const result = prev.map((item) => {return {...item}});
+        result[id].reboot = false;
+        return result;
+      })
+
+      return;
+    }
+
     const angle = selected || collected ? 180 : 0;
     cardRef.current.style.transform = `rotateY(${angle}deg)`;
     backRef.current.style.display = selected || collected ? 'none' : 'block';
@@ -77,6 +87,7 @@ const Card = (props: propsType) => {
     const animation = () => {
       if(!cardRef.current) return;
       if(!backRef.current || !frontRef.current) return;
+      if(!isAnimatingRef.current) return;
       const time = Date.now();
       const delta = time - lastTimeRef.current;
       const increment = delta > 100 ? 0 : -300 * delta / 1000;
@@ -115,6 +126,8 @@ const Card = (props: propsType) => {
     const animation = () => {
       if(!cardRef || !cardRef.current) return;
       if(!backRef.current || !frontRef.current) return;
+      if(!isAnimatingRef.current) return;
+
       const time = Date.now();
       const delta = time - lastTimeRef.current;
 

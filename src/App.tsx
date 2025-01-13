@@ -5,22 +5,47 @@ import dog from './assets/dog.png'
 import bird from './assets/bird.png'
 import baby from './assets/baby.png'
 import bat from './assets/bat.png'
+import reload from './assets/reload-icon.svg'
 import { useEffect, useState } from 'react'
+
+export type cardObject = {
+  hovered:boolean, selected:boolean, collected:boolean, image:string,
+    reset:boolean, reboot: boolean
+}
 
 function App() {
 
-  const [cards, setCards] = useState<{
-    hovered:boolean, selected:boolean, collected:boolean, image:string,
-    reset:boolean
-  }[]>([
-    {hovered: false, image:dog, selected: false, collected: false, reset:false},
-    {hovered: false, image:dog, selected: false, collected: false, reset: false},
-    {hovered: false, image:baby, selected: false, collected: false, reset: false},
-    {hovered: false, image:baby, selected: false, collected: false, reset: false},
-    {hovered: false, image:bird, selected: false, collected: false, reset: false},
-    {hovered: false, image:bird, selected: false, collected: false, reset: false},
-    {hovered: false, image:bat, selected: false, collected: false, reset: false},
-    {hovered: false, image:bat, selected: false, collected: false, reset: false},
+  const shuffleCards: (list:cardObject[]) => cardObject[] = (list) => {
+    
+    for(let i = 0; i < list.length; i++) {
+      const index = Math.floor(Math.random() * list.length);
+      const tmp = list[i].image;
+      list[i].image = list[index].image;
+      list[index].image = tmp;
+    }
+
+    //reset all values to false
+    for(let i = 0; i < list.length; i++){
+      list[i].collected = false;
+      list[i].hovered = false;
+      list[i].reset = false;
+      list[i].selected = false;
+      list[i].reboot = true;
+    }
+
+    return [...list];
+
+  }
+
+  const [cards, setCards] = useState<cardObject[]>([
+    {hovered: false, image:dog, selected: false, collected: false, reset:false, reboot: true},
+    {hovered: false, image:dog, selected: false, collected: false, reset: false, reboot: false},
+    {hovered: false, image:baby, selected: false, collected: false, reset: false, reboot: true},
+    {hovered: false, image:baby, selected: false, collected: false, reset: false, reboot: false},
+    {hovered: false, image:bird, selected: false, collected: false, reset: false, reboot: false},
+    {hovered: false, image:bird, selected: false, collected: false, reset: false, reboot: false},
+    {hovered: false, image:bat, selected: false, collected: false, reset: false, reboot: false},
+    {hovered: false, image:bat, selected: false, collected: false, reset: false, reboot: false}
   ])
   
   const searchForCollected = () => {
@@ -57,6 +82,10 @@ function App() {
     }
     setCards(result);
   }
+
+  useEffect(() => {
+    setCards(shuffleCards(cards));
+  }, [])
   
   useEffect(() => {
     console.log('render');
@@ -69,7 +98,11 @@ function App() {
         <div className="title">
           <h2>Memory Game</h2>
         </div>
-        <div className="reboot-button"></div>
+        <div
+        onPointerDown={() => {setCards(shuffleCards(cards))}}
+        className="reboot-button">
+          <img src={reload} />
+        </div>
       </div>
       <div className="game-container">
         <div className="cards-line">

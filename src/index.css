@@ -51,5 +51,12 @@ body {
   height: 65px;
   width: 65px;
   border-radius: 12px;
+  padding: 10px;
   background-color: #FBE9D0;
+  cursor: pointer;
+}
+
+.reboot-button img {
+  width: 100%;
+  height: auto;
 }
