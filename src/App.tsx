@@ -37,6 +37,16 @@ function App() {
 
   }
 
+  const getSize: (width:number) => {card:number, container:number, padding:number, containerHeight:number} = (width) => {
+    
+    if(width <= 450) return {card:70, container: 300, padding:20, containerHeight:225}
+    if(width <= 650) return {card:85, container: 400, padding:25, containerHeight:300}
+    if(width <= 850) return {card: 125, container: 600, padding:50, containerHeight:500}
+    return {card:150, container:800, padding:50, containerHeight:500}
+
+  }
+
+  const [size, setSize] = useState(getSize(window.innerWidth))
   const [cards, setCards] = useState<cardObject[]>([
     {hovered: false, image:dog, selected: false, collected: false, reset:false, reboot: true},
     {hovered: false, image:dog, selected: false, collected: false, reset: false, reboot: false},
@@ -83,9 +93,17 @@ function App() {
     setCards(result);
   }
 
+  const handleResize = () => {
+    const width = window.innerWidth;
+    console.log('resize!!!', width);
+    setSize(getSize(width));
+  }
+
   useEffect(() => {
     setCards(shuffleCards(cards));
-  }, [])
+    removeEventListener('resize', handleResize);
+    addEventListener('resize', handleResize);
+  }, []);
   
   useEffect(() => {
     console.log('render');
@@ -93,7 +111,7 @@ function App() {
   })
 
   return (
-    <div className="main-container">
+      <div style={{width:size.container}} className="main-container">
       <div className="header">
         <div className="title">
           <h2>Memory Game</h2>
@@ -104,15 +122,15 @@ function App() {
           <img src={reload} />
         </div>
       </div>
-      <div className="game-container">
+      <div style={{padding:size.padding, height:size.containerHeight}} className="game-container">
         <div className="cards-line">
           {cards.map((card, index) => {
-            return <Card setCards={setCards} key={index} id={index} config={card} background={background} size={150}/>
+            return <Card setCards={setCards} key={index} id={index} config={card} background={background} size={size}/>
           }).slice(0,4)}
         </div>
         <div className="cards-line">
         {cards.map((card, index) => {
-            return <Card setCards={setCards} key={index} id={index} config={card} background={background} size={150}/>
+            return <Card setCards={setCards} key={index} id={index} config={card} background={background} size={size}/>
           }).slice(4)}
         </div>
       </div>

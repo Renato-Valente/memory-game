@@ -4,7 +4,9 @@ import { cardObject } from '../App';
 
 type propsType = {
     config: cardObject,
-    size: number, id:number, background: string
+    size: {
+      card:number, container:number, padding:number, containerHeight:number
+    }, id:number, background: string
     setCards: (value:React.SetStateAction<cardObject[]>) => void
   
 }
@@ -207,8 +209,8 @@ const Card = (props: propsType) => {
 
     style={{
       scale: hovered && !collected ? '1.2' : '1',
-      width: size * 3 / 4,
-      height: size,
+      width: size.card * 3 / 4,
+      height: size.card,
     }} className="card">
     
     <img ref={backRef} src={background} style={{display: (selected || collected) ? 'none' : 'block'}} className="card-background" />

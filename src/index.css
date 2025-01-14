@@ -15,7 +15,7 @@ body {
 }
 
 .main-container {
-  width: 800px;
+  /* width: 800px; */
   /* border: 1px solid red; */
   display: flex;
   flex-direction: column;
@@ -32,6 +32,12 @@ body {
   justify-content: space-between;
   align-items: center;
 }
+@media only screen and (max-width: 650px) {
+  .header {
+    padding: 10px 25px;
+  }
+}
+
 
 .game-container {
   width: 100%;
@@ -39,12 +45,35 @@ body {
   height: 500px;
   background-color: #FBE9D0;
   padding: 50px;
+  position: relative;
 }
+
+/* @media only screen and (max-width: 650px) {
+  .game-container {
+    height: 300px;
+  }
+}
+@media only screen and (max-width: 450px) {
+  .game-container {
+    height: 225px;
+  }
+} */
 
 .title {
   font-size: 2rem;
   font-family: "Concert One" ,sans-serif;
   color: #FBE9D0;
+}
+
+@media only screen and (max-width: 650px) {
+  .title {
+    font-size: 1.2rem;
+  }
+}
+@media only screen and (max-width: 450px) {
+  .title {
+    font-size: 1rem;
+  }
 }
 
 .reboot-button {
@@ -54,6 +83,15 @@ body {
   padding: 10px;
   background-color: #FBE9D0;
   cursor: pointer;
+}
+
+@media only screen and (max-width: 650px) {
+  .reboot-button {
+    height: 40px;
+    width: 40px;
+    border-radius: 12px;
+    padding: 5px;
+  }
 }
 
 .reboot-button img {
