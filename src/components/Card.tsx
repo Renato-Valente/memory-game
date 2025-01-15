@@ -24,9 +24,9 @@ const Card = (props: propsType) => {
   const frontRef = useRef<HTMLImageElement>(null);
 
   
-  const isFlipped = (angle:number) => {
+  /* const isFlipped = (angle:number) => {
     return angle > 90 && angle < 270;
-  }
+  } */
   
   const {size, config, background, setCards, id} = props;
   const {image, hovered, selected, collected, reset, reboot} = config;
