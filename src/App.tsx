@@ -117,7 +117,11 @@ function App() {
           <h2>Memory Game</h2>
         </div>
         <div
-        onPointerDown={() => {setCards(shuffleCards(cards))}}
+        onPointerDown={() => {
+          const isRebooting = cards.find((card) => card.reboot);
+          if(isRebooting) return; 
+          setCards(shuffleCards(cards))
+        }}
         className="reboot-button">
           <img src={reload} />
         </div>
