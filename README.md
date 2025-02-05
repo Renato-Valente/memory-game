@@ -1,6 +1,6 @@
 # Browser Memory Game
 
-Hello. Good to have you here. Here you can see more about the project. This project features a memory game that runs on your web browser. I’m gonna show you how to properly build and run the game on your local machine. The project is also hosted online and you can play it [here](https://react-chess-gcyh.onrender.com).
+Hello. Good to have you here. Here you can see more about the project. This project features a memory game that runs on your web browser. I’m gonna show you how to properly build and run the game on your local machine. The project is also hosted online and you can play it [here](https://memory-game-o802.onrender.com).
 
 ## Running on local machine
 ### Dependencies
